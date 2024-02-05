@@ -2,13 +2,13 @@ import subprocess
 import os.path as op
 from time import time
 from datetime import datetime
-from typing import Iterable, List
+from typing import Iterable, List, Union
 from .utils import MessageIntent, cprint
 import sys
 import traceback
 
 
-def write_log(log_f, *text: str|List[str]):
+def write_log(log_f, *text: Union[str, List[str]]):
     """ Append text to the log text file. """
     # text = [text] if isinstance(text, str) else text
     with open(log_f, 'a+') as fp:
