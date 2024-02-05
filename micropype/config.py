@@ -1,6 +1,6 @@
 from warnings import warn
 import yaml
-from .utils import MessageIntent, cprint
+from micropype.utils import MessageIntent, cprint, merge_dicts
 
 
 def read_annotations(cls):
@@ -17,13 +17,25 @@ def read_annotations(cls):
     return attributes
 
 
-
 class Config:
-    def __init__(self, yaml_f=None, **kwargs) -> None:
+    _children = {}
+
+    def __init__(self, yaml_f=None, priority="yaml", **kwargs) -> None:
+        """
+            Parameters
+            ==========
+            yaml_f: str
+            priority: "yaml" or "kwargs"
+                Which config values to use even if defined in the other method.
+        """
         if yaml_f is not None:
-            raise NotImplementedError()
-            # TODO: overide kwargs with yaml values (do it also in chlids)
-            cfg = yaml.load(open(yaml_f, 'r'))
+            ycfg = yaml.load(open(yaml_f, 'r'))
+            if priority == "yaml":
+                kwargs = merge_dicts(kwargs, ycfg)
+            elif priority == "kwargs":
+                kwargs = merge_dicts(ycfg, kwargs)
+            else:
+                raise ValueError("")
 
         attributes = read_annotations(self.__class__)
 
@@ -32,10 +44,9 @@ class Config:
             useDefault = not attr_name in kwargs
             if not useDefault:
                 used_kwargs += 1
-            isASubClass = attr_t in globals() and isinstance(globals()[attr_t], type)
 
-            if isASubClass:
-                value = globals()[attr_t]() if useDefault else globals()[attr_t](**kwargs[attr_name])
+            if attr_t in self._children:
+                value = self._children[attr_t] if useDefault else self._children[attr_t](**kwargs[attr_name])
             else:
                 value = default_v if useDefault else kwargs[attr_name]
             self.__setattr__(attr_name, value)
@@ -47,7 +58,30 @@ class Config:
                         intent=MessageIntent.WARNING
                     )
                     continue
-                
+
+    @classmethod
+    def register(cls, child_class):
+        cls._children[child_class.__name__] = child_class
+        return child_class
+    
+
+    def to_dict(self) -> dict:
+        result = {}
+        for name, value in self.__dict__.items():
+            if isinstance(value, Config):
+                result[name] = value.to_dict()
+            elif isinstance(value, list):
+                result[name] = [item.to_dict() if isinstance(item, Config) else item for item in value]
+            elif isinstance(value, dict):
+                result[name] = {key: value.to_dict() if isinstance(value, Config) else value for key, value in value.items()}
+            else:
+                result[name] = value
+        return result
+
+    def to_yaml(self, filepath:str):
+        with open(filepath, 'w') as fp:
+            yaml.dump(self.to_dict(), fp)
+
 
 # if __name__ == "__main__":
 #     class SubConfig(Config):

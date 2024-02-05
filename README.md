@@ -1,6 +1,10 @@
-# Micro-Pipe
+# MicroPype
 A tiny package to create very basic pipeline executing command lines and/or calling python functions.
 
+## Install
+```shell
+pip install micropype
+```
 
 ## API
 Here are the two mains functions you need:
@@ -42,7 +46,7 @@ from micropipe import cached_run, cached_function_call
 
 log = "mylog.txt"
 
-ouf_f = "lsOutput.log"
+out_f = "lsOutput.log"
 cached_run(
     f"ls -lrt >> {out_f}",
     out_f,

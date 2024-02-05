@@ -3,9 +3,8 @@ import os.path as op
 from time import time
 from datetime import datetime
 from typing import Iterable, List
-from catitracto.core.utils import MessageIntent, cprint
+from .utils import MessageIntent, cprint
 import sys
-import os
 import traceback
 
 
@@ -29,9 +28,10 @@ def versions_2_txt(versions:dict=None):
     txt += "#############\n"
     return txt
     
+
 def run_cmd(cmd, title=None, log=None, versions:dict=None, raise_errors=True):
     """ Run a command in a sub process """
-    splitted_cmd = cmd.split(' ')
+    splitted_cmd = cmd #cmd.split(' ')
 
     if title:
         cprint(f"Start {title}", intent=MessageIntent.INFO)
@@ -48,7 +48,7 @@ def run_cmd(cmd, title=None, log=None, versions:dict=None, raise_errors=True):
                 f"\n##########\nStarted at: {datetime.isoformat(datetime.now())}"
             )
             tic = time()
-            output = subprocess.check_output(splitted_cmd, stderr=subprocess.STDOUT)
+            output = subprocess.check_output(splitted_cmd, stderr=subprocess.STDOUT, shell=True)
             toc = time()
             write_log(log,
                 output.decode("utf-8"),
@@ -56,7 +56,7 @@ def run_cmd(cmd, title=None, log=None, versions:dict=None, raise_errors=True):
                 "\n#####\n\n\n"
             )
         else:
-            subprocess.run(splitted_cmd)
+            subprocess.run(splitted_cmd, shell=True)
     except Exception as e:
         tb = traceback.format_exc()
         cprint(f"An error occured while running: {cmd}", intent=MessageIntent.ERROR)
@@ -99,7 +99,6 @@ def cached_run(cmd, out_files:List[str]=None, title=None, log=None,
         cprint('Using cached files for', title if title else cmd, intent=MessageIntent.WARNING)
 
 
-
 def _run_func(func, args):
     if args is None:
         func()
@@ -110,6 +109,7 @@ def _run_func(func, args):
     else:
         raise ValueError("arguments hould be either None, a list or a dict.")
  
+
 def run_func(func, args, title=None, log=None, versions:dict=None, raise_errors=True):
     """ Run a command in a sub process """
     if title:
@@ -180,9 +180,3 @@ def cached_function_call(func, args, out_files:List[str]=None, title=None, log=N
         return run_func(func, args, title, log, versions, raise_errors)
     if verbose:
         cprint('Using cached files for', title if title else func.__name__, intent=MessageIntent.WARNING)
-
-
-# if __name__:
-#     out = "/tmp/temp_std_out.log"
-#     r = run_cmd("python -V", "Which python is used?", log=out, raise_errors=False)
-#     print(r)
