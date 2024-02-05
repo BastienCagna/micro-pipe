@@ -1,5 +1,5 @@
 import pytest
 
 
-def test_config():
+def test_log():
     assert(True)
