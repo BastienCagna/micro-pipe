@@ -37,7 +37,7 @@ def test_config():
     yaml_f = op.join(tmp_dir.name, "config.yaml")
     config.to_yaml(yaml_f)
 
-    yml = yaml.load(open(yaml_f, 'r'))
+    yml = yaml.safe_load(open(yaml_f, 'r'))
     assert(yml['num'] == .3)
 
     # Re-import from yaml

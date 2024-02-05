@@ -29,7 +29,7 @@ class Config:
                 Which config values to use even if defined in the other method.
         """
         if yaml_f is not None:
-            ycfg = yaml.load(open(yaml_f, 'r'))
+            ycfg = yaml.safe_load(open(yaml_f, 'r'))
             if priority == "yaml":
                 kwargs = merge_dicts(kwargs, ycfg)
             elif priority == "kwargs":
