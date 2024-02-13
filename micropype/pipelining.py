@@ -1,11 +1,50 @@
 import subprocess
 import os.path as op
-from time import time
+from time import time, sleep
 from datetime import datetime
-from typing import Iterable, List, Union
+from typing import Iterable, List, Union, Any
 from .utils import MessageIntent, cprint
 import sys
 import traceback
+# import signal 
+# from subprocess import signal, Popen
+
+# PREKILL_SLEEPING_TIME_SEC = 1
+
+# class RuntimeManager:
+#     stopped = False
+#     current_subprocess: Popen = None
+
+#     def __init__(self) -> None:
+#         pass
+
+#     def stop(self):
+#         if self.current_subprocess:
+#             print("runtimemanager: terminate not working")
+#             # self.current_subprocess.send_signal(signal.SIGINT)
+#             # # # Try to stop
+#             # self.current_subprocess.terminate()
+#             # self.current_subprocess.communicate()
+#             # # # Wait to see if the process can be terminated
+#             # # sleep(PREKILL_SLEEPING_TIME_SEC)
+            
+#             # # # If the process is still alive, kill it
+#             # # print("runtimemanager: kill?")
+#             # # if self.current_subprocess.poll() is None:
+#             # #     print("runtimemanager: yes, kill")
+#             # sleep(1)
+#             # print("killing", self.current_subprocess.pid)
+#             # self.current_subprocess.kill()
+#             # self.current_subprocess.send_signal(signal.SIGTERM)
+#             # # self.current_subprocess.join()
+#         self.stopped = True
+#         sys.exit()
+
+#     def __setattr__(self, __name: str, __value: Any) -> None:
+#         if __name == "current_subprocess":
+#             print("Updating current subprocess to:", __value)
+#             print(__value)
+#         return super().__setattr__(__name, __value)
 
 
 def write_log(log_f, *text: Union[str, List[str]]):
@@ -48,7 +87,7 @@ def run_cmd(cmd, title=None, log=None, versions:dict=None, raise_errors=True):
                 f"\n##########\nStarted at: {datetime.isoformat(datetime.now())}"
             )
             tic = time()
-            output = subprocess.check_output(splitted_cmd, stderr=subprocess.STDOUT, shell=True)
+            output = _run_cmd(splitted_cmd)
             toc = time()
             write_log(log,
                 output.decode("utf-8"),
@@ -56,7 +95,7 @@ def run_cmd(cmd, title=None, log=None, versions:dict=None, raise_errors=True):
                 "\n#####\n\n\n"
             )
         else:
-            subprocess.run(splitted_cmd, shell=True)
+            _run_cmd(splitted_cmd)
     except Exception as e:
         tb = traceback.format_exc()
         cprint(f"An error occured while running: {cmd}", intent=MessageIntent.ERROR)
@@ -79,6 +118,20 @@ def run_cmd(cmd, title=None, log=None, versions:dict=None, raise_errors=True):
         cprint(f"done in {time()-tic:.02f}s", intent=MessageIntent.SUCCESS)
     return 0
 
+def _run_cmd(splitted_cmd):
+    # output = subprocess.check_output(splitted_cmd, stderr=subprocess.STDOUT, shell=True)
+    process = subprocess.Popen(splitted_cmd, stdout=subprocess.PIPE, shell=True, stderr=subprocess.STDOUT)# stderr=subprocess.STDOUT, shell=True)
+    # if runtime_manager:
+    #     if runtime_manager.stopped:
+    #         sys.exit()
+    #     runtime_manager.current_subprocess = process
+    # else:
+    #     print("not using runtime manager")
+    process.wait()
+    output = process.stdout.read()
+    # if runtime_manager:
+    #     runtime_manager.current_subprocess = None
+    return output
 
 def cached_run(cmd, out_files:List[str]=None, title=None, log=None, 
                versions:dict=None, raise_errors=True, verbose=False):
@@ -180,3 +233,5 @@ def cached_function_call(func, args, out_files:List[str]=None, title=None, log=N
         return run_func(func, args, title, log, versions, raise_errors)
     if verbose:
         cprint('Using cached files for', title if title else func.__name__, intent=MessageIntent.WARNING)
+
+

@@ -32,6 +32,9 @@ Use it to call a python function.
 ## Configuration file
 
 
+## Command line
+
+
 ## Example
 Here is an example of simple configuration file:
 ```yaml

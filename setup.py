@@ -5,7 +5,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="micropype",
-    version="0.1",
+    version="0.2.1",
     packages=find_packages(),
     author="Bastien Cagna",
     description="Very basic pipelining toolbox",

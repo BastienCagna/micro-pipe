@@ -38,10 +38,10 @@ def cprint(*args, intent:MessageIntent=MessageIntent.DEFAULT):
     print(f'{datetime_str()}:', clr, " ".join(str(a) for a in args), Style.RESET_ALL)
 
 
-def merge_dicts(a: dict, b: dict) -> dict():
+def merge_dicts(a: dict, b: dict) -> dict:
     """ Override a with b values 
 
-        If a keys dot not existe in b, it is created
+        If a keys dot not exists in b, it is created
     """
     for key in b:
         if key in a and isinstance(a[key], dict) and isinstance(b[key], dict):
@@ -49,3 +49,31 @@ def merge_dicts(a: dict, b: dict) -> dict():
         else:
             a[key] = b[key]
     return a
+
+
+
+def cast_to_type(value: str):
+    """ Convert string to float, int, list or dict is possible """
+    # Try float
+    try:
+        return float(value)
+    except ValueError:
+        pass
+
+    # Try int
+    try:
+        return int(value)
+    except ValueError:
+        pass
+
+    # Try list or dict
+    try:
+        if value.startswith("[") and value.endswith("]"):
+            return eval(value)  # Convertir en list
+        elif value.startswith("{") and value.endswith("}"):
+            return eval(value)  # Convertir en dict
+    except (SyntaxError, ValueError):
+        pass
+
+    # Then it is a str
+    return value

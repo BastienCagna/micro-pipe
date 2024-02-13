@@ -1,4 +1,3 @@
-from warnings import warn
 import yaml
 from micropype.utils import MessageIntent, cprint, merge_dicts
 
@@ -12,8 +11,20 @@ def read_annotations(cls):
     attributes = {}
     for attr, attr_type in cls.__annotations__.items():
         default = cls.__getattribute__(cls, attr) if hasattr(cls, attr) else None
+
+        # If the attribute is optional, get it's subtype
+        attr_type = attr_type.__args__[0] if attr_type.__name__ == "Optional" else attr_type
+
         t = attr_type.__name__
-        attributes[attr] = (t, default)
+
+        sub_t = None
+        if hasattr(attr_type, "__name__") and attr_type.__name__ == "List":
+            if len(attr_type.__args__) > 0:
+                sub_t = attr_type.__args__[0].__name__
+            t = list
+                
+    
+        attributes[attr] = (t, default, sub_t)
     return attributes
 
 
@@ -39,17 +50,30 @@ class Config:
 
         attributes = read_annotations(self.__class__)
 
+        #
         used_kwargs = 0 
-        for attr_name, (attr_t, default_v) in attributes.items():
+        for attr_name, (attr_t, default_v, sub_type) in attributes.items():
             useDefault = not attr_name in kwargs
             if not useDefault:
                 used_kwargs += 1
 
-            if attr_t in self._children:
-                value = self._children[attr_t] if useDefault else self._children[attr_t](**kwargs[attr_name])
+            if attr_t in self._children or (attr_t in [list, tuple] and sub_type in self._children):
+                if useDefault:
+                    value = self._children[attr_t if not attr_t in [list, tuple] else sub_type]
+                # If it is a sub Config
+                elif type(kwargs[attr_name]).__name__ == "dict":
+                    value = self._children[attr_t](**kwargs[attr_name])
+                # If it is a list of Config
+                elif attr_t in [list, tuple] and len(kwargs[attr_name]) > 0 and type(kwargs[attr_name][0]).__name__ == "dict":
+                    value = list(self._children[sub_type](**kwargs[attr_name][i]) for i in range(len(kwargs[attr_name])))
+                else:
+                    value = kwargs[attr_name]
             else:
                 value = default_v if useDefault else kwargs[attr_name]
             self.__setattr__(attr_name, value)
+
+        # Print a message if a argument was passed but not used as it is no part
+        # of this config object
         if used_kwargs < len(kwargs.keys()):
             for k in kwargs.keys():
                 if not k in attributes.keys():
@@ -82,24 +106,3 @@ class Config:
         with open(filepath, 'w') as fp:
             yaml.dump(self.to_dict(), fp)
 
-
-# if __name__ == "__main__":
-#     class SubConfig(Config):
-#         name:   str = "Albert"
-#         age:    float
-#     class AConfig(Config):
-#         num:        float = .3
-#         foo:        dict
-#         subject:    SubConfig
-
-#     conf = {
-#         "paul": "jeje",
-#         "foo": {"item1": 0.1, "item2": 0.2},
-#         "subject": {
-#             "name": "ciceron",
-#             "age":  12
-#         }
-#     }
-
-#     config = AConfig(**conf)
-#     pass
