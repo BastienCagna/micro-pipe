@@ -39,7 +39,7 @@ def test_override_config_with_args():
     cfg = ExConfig()
     cfg2 = override_config_with_args(
         cfg,
-        testing_args
+        parse_args(testing_args)[1]
     )
 
     assert(cfg2.db.name == "unknown")
