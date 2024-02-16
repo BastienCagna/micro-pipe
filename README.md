@@ -37,10 +37,17 @@ Use it to call a python function.
 
 ## Example
 Here is an example of simple configuration file:
-```yaml
-steps:
-    do_ls: true
-    do_myfunction: false
+```json
+{
+    "steps": {
+        "do_ls": true,
+        "do_myfunction": false
+    },
+    "subconfig":  [
+        {"name": "firstone", "file": "/dflf.txt", "values": [0, 3, 5, 10]},
+        {"name": "firstone", "file": "/dflf.txt"},
+    ]
+}
 ```
 
 And then the pipeline:

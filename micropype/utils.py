@@ -52,28 +52,31 @@ def merge_dicts(a: dict, b: dict) -> dict:
 
 
 
-def cast_to_type(value: str):
+def auto_cast(value: str):
     """ Convert string to float, int, list or dict is possible """
-    # Try float
-    try:
-        return float(value)
-    except ValueError:
-        pass
+    # # Try float
+    # try:
+    #     return float(value)
+    # except ValueError:
+    #     pass
 
-    # Try int
-    try:
-        return int(value)
-    except ValueError:
-        pass
+    # # Try int
+    # try:
+    #     return int(value)
+    # except ValueError:
+    #     pass
 
-    # Try list or dict
+    # # Try list or dict
+    # try:
+    #     if value.startswith("[") and value.endswith("]"):
+    #         return eval(value)  # Convertir en list
+    #     if value.startswith("(") and value.endswith(")"):
+    #         return eval(value)  # Convertir en list
+    #     elif value.startswith("{") and value.endswith("}"):
+    #         return eval(value)  # Convertir en dict
+    # except (SyntaxError, ValueError):
+    #     pass
     try:
-        if value.startswith("[") and value.endswith("]"):
-            return eval(value)  # Convertir en list
-        elif value.startswith("{") and value.endswith("}"):
-            return eval(value)  # Convertir en dict
-    except (SyntaxError, ValueError):
-        pass
-
-    # Then it is a str
-    return value
+        return eval(value)
+    except:
+        return value

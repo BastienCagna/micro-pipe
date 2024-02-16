@@ -2,7 +2,7 @@ from typing import Any, List, get_type_hints
 import importlib
 import inspect
 
-from micropype.utils import cast_to_type
+from micropype.utils import auto_cast
 from . import Config
 
 
@@ -25,15 +25,15 @@ def parse_args(args: str) -> dict:
                     a2 -= 1
                     break
             if a2 == a+1:
-                kwargs[key] = cast_to_type(args[a+1])
+                kwargs[key] = auto_cast(args[a+1])
             elif a2 > a+1:
-                kwargs[key] = list(cast_to_type(val) for val in args[a+1: a2+1])
+                kwargs[key] = list(auto_cast(val) for val in args[a+1: a2+1])
             else:
                 kwargs[key] = True
             a = a2 + 1
         else:
             # This is still positional args
-            pos_args.append(cast_to_type(arg))     
+            pos_args.append(auto_cast(arg))     
             a += 1  
     return pos_args, kwargs
 
@@ -107,7 +107,7 @@ def run_function_from_commandline(function_path: str, *args):
         First, the function is imported and the arguments that match function definition are found,
         they are use when running the function as kwargs.
 
-        If a "--config path/to/config/file.yaml" is in args and that the function definition
+        If a "--config path/to/config/file.json" is in args and that the function definition
         uses a config parameter of type micropype.Config (or subclass), the config file is loaded
         to initialze the config.
 
@@ -147,8 +147,8 @@ def run_function_from_commandline(function_path: str, *args):
 
     # If the function has a "config" argument of type (or subtype) micropype.Config
     if "config" in f_args and issubclass(f_args["config"], Config):
-        # And if the second argument is a YAML file, load the config file
-        if "config" in parsed_args and parsed_args["config"].endswith(".yaml"):
+        # And if the second argument is a JSON file, load the config file
+        if "config" in parsed_args and parsed_args["config"].endswith(".json"):
             conf = f_args["config"](parsed_args["config"])
             del parsed_args["config"]
         # Else init the Config from nothing

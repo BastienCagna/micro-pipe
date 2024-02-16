@@ -13,7 +13,7 @@ setup(
     long_description_content_type='text/markdown',
     license='BSD 3',
     entry_points = {},
-    install_requires=["pyyaml", "colorama"],
+    install_requires=["json", "colorama"],
     extras_require={ "dev": [ "pytest" ]},
     include_package_data=True,
 )

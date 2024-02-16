@@ -1,4 +1,4 @@
-import yaml
+import json
 from micropype.utils import MessageIntent, cprint, merge_dicts
 
 
@@ -31,17 +31,17 @@ def read_annotations(cls):
 class Config:
     _children = {}
 
-    def __init__(self, yaml_f=None, priority="yaml", **kwargs) -> None:
+    def __init__(self, json_f=None, priority="file", **kwargs) -> None:
         """
             Parameters
             ==========
-            yaml_f: str
-            priority: "yaml" or "kwargs"
+            json_f: str
+            priority: "json" or "kwargs"
                 Which config values to use even if defined in the other method.
         """
-        if yaml_f is not None:
-            ycfg = yaml.safe_load(open(yaml_f, 'r'))
-            if priority == "yaml":
+        if json_f is not None:
+            ycfg = json.load(open(json_f, 'r'))
+            if priority == "file":
                 kwargs = merge_dicts(kwargs, ycfg)
             elif priority == "kwargs":
                 kwargs = merge_dicts(ycfg, kwargs)
@@ -59,7 +59,7 @@ class Config:
 
             if attr_t in self._children or (attr_t in [list, tuple] and sub_type in self._children):
                 if useDefault:
-                    value = self._children[attr_t if not attr_t in [list, tuple] else sub_type]
+                    value = [] if attr_t in [list, tuple] else self._children[attr_t]
                 # If it is a sub Config
                 elif type(kwargs[attr_name]).__name__ == "dict":
                     value = self._children[attr_t](**kwargs[attr_name])
@@ -102,7 +102,7 @@ class Config:
                 result[name] = value
         return result
 
-    def to_yaml(self, filepath:str):
+    def to_json(self, filepath:str):
         with open(filepath, 'w') as fp:
-            yaml.dump(self.to_dict(), fp)
+            json.dump(self.to_dict(), fp, indent=4)
 

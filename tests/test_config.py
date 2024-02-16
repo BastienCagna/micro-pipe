@@ -1,7 +1,7 @@
 import tempfile
 import os.path as op
 
-import yaml
+import json
 from micropype.config import Config
 
 
@@ -32,16 +32,16 @@ def test_config():
     assert(config.num == .3)
     assert(config.subject.age == 12)
 
-    # Export as yaml
+    # Export as json
     tmp_dir = tempfile.TemporaryDirectory()
-    yaml_f = op.join(tmp_dir.name, "config.yaml")
-    config.to_yaml(yaml_f)
+    json_f = op.join(tmp_dir.name, "config.json")
+    config.to_json(json_f)
 
-    yml = yaml.safe_load(open(yaml_f, 'r'))
+    yml = json.safe_load(open(json_f, 'r'))
     assert(yml['num'] == .3)
 
-    # Re-import from yaml
-    yconfig = AConfig(yaml_f)
+    # Re-import from json
+    yconfig = AConfig(json_f)
     assert(yconfig.foo['item2'] == config.foo['item2'])
     assert(yconfig.num == config.num)
     assert(yconfig.subject.age == config.subject.age)
