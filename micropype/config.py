@@ -1,3 +1,4 @@
+from typing import List
 import json
 from micropype.utils import MessageIntent, cprint, merge_dicts
 
@@ -106,3 +107,10 @@ class Config:
         with open(filepath, 'w') as fp:
             json.dump(self.to_dict(), fp, indent=4)
 
+    def keys(self) -> List[str]:
+        return list(filter(lambda k: not k.startswith('_'), self.__dict__.keys()))
+    
+    def __getitem__(self, name: str):
+        if hasattr(self, name):
+            return getattr(self, name)
+        raise ValueError(f'This config has no {name} attribute.')
